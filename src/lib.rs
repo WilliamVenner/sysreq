@@ -23,7 +23,7 @@
 //! println!("{}", String::from_utf8_lossy(&html));
 //! ```
 
-use hyper::Uri;
+use url::Url;
 use std::process::{Command, ExitStatus, Stdio};
 
 mod tests;
@@ -60,8 +60,8 @@ pub enum Error {
     #[error("I/O error: {0}")]
     IoError(#[from] std::io::Error),
 
-    #[error("{0}")]
-    InvalidUrl(#[from] hyper::http::uri::InvalidUri),
+    #[error("invalid URL: {0}")]
+    InvalidUrl(#[from] url::ParseError),
 
     #[error("Process exited with code {status:?}")]
     CommandFailed {
@@ -176,6 +176,6 @@ pub fn installed() -> bool {
 /// Perform a GET request to the given URL
 pub fn get(uri: impl AsRef<str>) -> Result<Vec<u8>, Error> {
     let uri = uri.as_ref();
-    let _: Uri = uri.try_into()?;
+    let _: Url = uri.try_into()?;
     http_client()?.get(uri)
 }
