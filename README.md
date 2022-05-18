@@ -4,9 +4,9 @@
 
 # sysreq
 
-Simple, virtually-zero-dependencies HTTP client wrapping a system client.
+Simple, virtually-zero-dependencies HTTP client wrapping a system client. Make HTTP requests without breaking the bank!
 
-For when you want to make dead simple HTTP requests without breaking the bank.
+"Virtually-zero" means no unnecessary runtime dependencies. The only runtime dependency, other than `std`, is URL validation, which is required for security reasons.
 
 ## Supported Backends
 
