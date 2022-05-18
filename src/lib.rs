@@ -23,8 +23,8 @@
 //! println!("{}", String::from_utf8_lossy(&html));
 //! ```
 
-use std::process::{Command, ExitStatus, Stdio};
 use hyper::Uri;
+use std::process::{Command, ExitStatus, Stdio};
 
 mod tests;
 
@@ -33,56 +33,64 @@ mod tests;
 /// Wrapper around Stdio output that prints as a string for debugging purposes.
 pub struct CommandFailedOutput(pub Vec<u8>);
 impl std::fmt::Display for CommandFailedOutput {
-	#[inline]
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		write!(f, "{}", String::from_utf8_lossy(&self.0))
-	}
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", String::from_utf8_lossy(&self.0))
+    }
 }
 impl std::fmt::Debug for CommandFailedOutput {
-	#[inline]
-	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-		std::fmt::Display::fmt(self, f)
-	}
+    #[inline]
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Display::fmt(self, f)
+    }
 }
 impl From<CommandFailedOutput> for Vec<u8> {
-	#[inline(always)]
-	fn from(out: CommandFailedOutput) -> Self {
-		out.0
-	}
+    #[inline(always)]
+    fn from(out: CommandFailedOutput) -> Self {
+        out.0
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
 /// Errors that sysreq can return
 pub enum Error {
-	#[error("This system does not have an HTTP client installed")]
-	SystemHTTPClientNotFound,
+    #[error("This system does not have an HTTP client installed")]
+    SystemHTTPClientNotFound,
 
-	#[error("I/O error: {0}")]
-	IoError(#[from] std::io::Error),
+    #[error("I/O error: {0}")]
+    IoError(#[from] std::io::Error),
 
-	#[error("{0}")]
-	InvalidUrl(#[from] hyper::http::uri::InvalidUri),
+    #[error("{0}")]
+    InvalidUrl(#[from] hyper::http::uri::InvalidUri),
 
-	#[error("Process exited with code {status:?}")]
-	CommandFailed {
-		status: ExitStatus,
-		stdout: CommandFailedOutput,
-		stderr: CommandFailedOutput
-	}
+    #[error("Process exited with code {status:?}")]
+    CommandFailed {
+        status: ExitStatus,
+        stdout: CommandFailedOutput,
+        stderr: CommandFailedOutput,
+    },
 }
 
 pub(crate) trait SystemHTTPClient: Sized + Send + Sync {
-	const COMMAND: &'static str;
+    const COMMAND: &'static str;
 
-	fn installed_spawn() -> Command {
-		Command::new(Self::COMMAND)
-	}
+    fn installed_spawn() -> Command {
+        Command::new(Self::COMMAND)
+    }
 
-	fn installed() -> bool {
-		!matches!(Self::installed_spawn().stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null()).status(), Err(err) if err.kind() == std::io::ErrorKind::NotFound)
-	}
+    fn installed() -> bool {
+        !matches!(
+			Self::installed_spawn()
+				.stdin(Stdio::null())
+				.stdout(Stdio::null())
+				.stderr(Stdio::null())
+				.status(),
 
-	fn get(&self, uri: &str) -> Result<Vec<u8>, Error>;
+			Err(err) if err.kind() == std::io::ErrorKind::NotFound
+		)
+    }
+
+    fn get(&self, uri: &str) -> Result<Vec<u8>, Error>;
 }
 
 // Defines available system HTTP clients in `mod`s in order of preference
@@ -134,32 +142,40 @@ macro_rules! system_http_clients {
 
 		#[cfg(test)]
 		fn all_http_clients() -> impl Iterator<Item = ResolvedSystemHTTPClient> {
-			[$($(#[$cfg])? { if <$mod::$client>::installed() { Some(ResolvedSystemHTTPClient::$client) } else { None } }),*].into_iter().flatten()
+			[
+				$($(#[$cfg])? {
+					if <$mod::$client>::installed() {
+						Some(ResolvedSystemHTTPClient::$client)
+					} else {
+						None
+					}
+				}),*
+			].into_iter().flatten()
 		}
 	};
 }
 system_http_clients! {
-	mod wget::wget;
-	mod powershell::PowerShell;
-	#[cfg(not(windows))] mod curl::cURL;
+    mod wget::wget;
+    mod powershell::PowerShell;
+    #[cfg(not(windows))] mod curl::cURL;
 }
 
 fn http_client() -> Result<ResolvedSystemHTTPClient, Error> {
-	match *HTTP_CLIENT {
-		Some(client) => Ok(client),
-		None => Err(Error::SystemHTTPClientNotFound)
-	}
+    match *HTTP_CLIENT {
+        Some(client) => Ok(client),
+        None => Err(Error::SystemHTTPClientNotFound),
+    }
 }
 
 #[inline]
 /// Returns whether the system has a compatible HTTP client installed
 pub fn installed() -> bool {
-	HTTP_CLIENT.is_some()
+    HTTP_CLIENT.is_some()
 }
 
 /// Perform a GET request to the given URL
 pub fn get(uri: impl AsRef<str>) -> Result<Vec<u8>, Error> {
-	let uri = uri.as_ref();
-	let _: Uri = uri.try_into()?;
-	http_client()?.get(uri)
+    let uri = uri.as_ref();
+    let _: Uri = uri.try_into()?;
+    http_client()?.get(uri)
 }
