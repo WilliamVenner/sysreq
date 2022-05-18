@@ -1,6 +1,6 @@
 #[test]
 fn test_get() {
-    use crate::SystemHTTPClient;
+	use crate::SystemHTTPClient;
 
 	let reqwest = reqwest::blocking::Client::new();
 
