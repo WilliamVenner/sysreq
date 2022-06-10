@@ -6,7 +6,7 @@ impl SystemHTTPClient for cURL {
 	const COMMAND: &'static str = "curl";
 
 	fn get(&self, uri: &str) -> Result<Vec<u8>, Error> {
-		let output = Command::new(Self::COMMAND).arg("-g").arg(&uri).output()?;
+		let output = spawn(Self::COMMAND).arg("-g").arg(&uri).output()?;
 		if output.status.success() {
 			Ok(output.stdout)
 		} else {

@@ -9,7 +9,7 @@ impl SystemHTTPClient for PowerShell {
 	const COMMAND: &'static str = "pwsh";
 
 	fn installed_spawn() -> Command {
-		let mut cmd = Command::new(Self::COMMAND);
+		let mut cmd = spawn(Self::COMMAND);
 		cmd.arg("-help");
 		cmd
 	}
@@ -32,7 +32,7 @@ impl SystemHTTPClient for PowerShell {
 			format_script(uri)
 		};
 
-		let mut output = Command::new(Self::COMMAND).arg("-command").arg(&uri).output()?;
+		let mut output = spawn(Self::COMMAND).arg("-command").arg(&uri).output()?;
 
 		// Remove the trailing CRLF PowerShell adds...
 		if output.stdout.len() >= 2 && &output.stdout[output.stdout.len() - 2..] == b"\r\n" {

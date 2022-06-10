@@ -6,7 +6,7 @@ impl SystemHTTPClient for wget {
 	const COMMAND: &'static str = "wget";
 
 	fn get(&self, uri: &str) -> Result<Vec<u8>, Error> {
-		let output = Command::new(Self::COMMAND).args(&["-qO", "-"]).arg(&uri).output()?;
+		let output = spawn(Self::COMMAND).args(&["-qO", "-"]).arg(&uri).output()?;
 		if output.status.success() {
 			Ok(output.stdout)
 		} else {

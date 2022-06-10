@@ -1,11 +1,30 @@
-use std::process::{Command, Stdio};
+use std::process::Stdio;
 use crate::error::{Error, CommandFailedOutput};
+
+/// **Use `spawn` to create a new `std::process::Command`, not `Command::new`!**
+type Command = std::process::Command;
+
+#[inline(always)]
+fn spawn<S: AsRef<std::ffi::OsStr>>(program: S) -> Command {
+	#[allow(unused_mut)]
+	let mut command = Command::new(program);
+
+	#[cfg(windows)] {
+		use std::os::windows::process::CommandExt;
+
+		// Don't create a new window!
+		const CREATE_NO_WINDOW: u32 = 0x08000000;
+		command.creation_flags(CREATE_NO_WINDOW);
+	}
+
+	command
+}
 
 pub(crate) trait SystemHTTPClient: Sized + Send + Sync {
 	const COMMAND: &'static str;
 
 	fn installed_spawn() -> Command {
-		Command::new(Self::COMMAND)
+		spawn(Self::COMMAND)
 	}
 
 	fn installed() -> bool {
