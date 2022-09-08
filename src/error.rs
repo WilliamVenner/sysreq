@@ -20,27 +20,22 @@ impl From<CommandFailedOutput> for Vec<u8> {
 	}
 }
 
-#[derive(Debug, thiserror::Error)]
+#[derive(Debug)]
 /// Errors that sysreq can return
 pub enum Error {
 	/// This system does not have an HTTP client installed
-	#[error("This system does not have an HTTP client installed")]
 	SystemHTTPClientNotFound,
 
 	/// An I/O error occurred
-	#[error("I/O error: {0}")]
-	IoError(#[from] std::io::Error),
+	IoError(std::io::Error),
 
 	/// The provided URL is invalid
-	#[error("invalid URL: {0}")]
-	InvalidUrl(#[from] url::ParseError),
+	InvalidUrl(url::ParseError),
 
 	/// The URL must have a http or https scheme for security reasons
-	#[error("URL must have http or https scheme")]
 	InvalidUrlScheme,
 
 	/// Generic failure with HTTP client
-	#[error("Process exited with code {status:?}")]
 	CommandFailed {
 		/// The returned exit status from the HTTP client process
 		status: std::process::ExitStatus,
@@ -51,4 +46,28 @@ pub enum Error {
 		/// The standard error stream it returned
 		stderr: CommandFailedOutput,
 	},
+}
+impl std::fmt::Display for Error {
+	fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+		match self {
+			Error::SystemHTTPClientNotFound => {
+				write!(f, "This system does not have an HTTP client installed")
+			}
+			Error::IoError(e) => write!(f, "I/O error: {}", e),
+			Error::InvalidUrl(e) => write!(f, "Invalid URL: {}", e),
+			Error::InvalidUrlScheme => write!(f, "URL must have http or https scheme"),
+			Error::CommandFailed { status, .. } => write!(f, "Process exited with code {status:?}"),
+		}
+	}
+}
+impl std::error::Error for Error {}
+impl From<url::ParseError> for Error {
+	fn from(err: url::ParseError) -> Self {
+		Self::InvalidUrl(err)
+	}
+}
+impl From<std::io::Error> for Error {
+	fn from(err: std::io::Error) -> Self {
+		Self::IoError(err)
+	}
 }
