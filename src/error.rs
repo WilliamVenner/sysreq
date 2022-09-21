@@ -27,6 +27,8 @@ pub enum Error {
 	SystemHTTPClientNotFound,
 
 	/// An I/O error occurred
+	///
+	/// Please note, sysreq does not parse or make any sense of what the underlying HTTP client returns (and will just return `Error::CommandFailed`), except for timeouts, so do not rely on this error for that.
 	IoError(std::io::Error),
 
 	/// The provided URL is invalid

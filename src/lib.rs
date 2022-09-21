@@ -32,13 +32,19 @@ mod error;
 pub use error::Error;
 
 mod clients;
-use clients::{SystemHttpClient, resolve::resolve};
-pub use clients::{resolve::installed, supported_http_clients};
+use clients::{resolve::resolve, SystemHttpClientInterface};
+pub use clients::{
+	resolve::{http_client, installed},
+	supported_http_clients, SystemHttpClient,
+};
 
 mod url;
 use self::url::ValidUrl;
 
+mod request;
+pub use request::RequestBuilder;
+
 /// Perform a GET request to the given URL
-pub fn get(uri: impl ValidUrl) -> Result<Vec<u8>, Error> {
-	resolve()?.get(uri.validate()?)
+pub fn get(url: impl ValidUrl) -> Result<Vec<u8>, Error> {
+	Ok(resolve()?.get(url.validate()?, None)?.body)
 }
