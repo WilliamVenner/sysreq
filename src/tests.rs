@@ -1,5 +1,5 @@
 #[cfg(test)]
-use crate::SystemHTTPClient;
+use crate::SystemHttpClient;
 
 #[test]
 fn test_get() {

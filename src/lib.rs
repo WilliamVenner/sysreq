@@ -32,7 +32,7 @@ mod error;
 pub use error::Error;
 
 mod clients;
-use clients::SystemHTTPClient;
+use clients::SystemHttpClient;
 pub use clients::{installed, supported_http_clients};
 
 mod url;

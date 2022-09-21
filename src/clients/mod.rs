@@ -20,7 +20,7 @@ fn spawn<S: AsRef<std::ffi::OsStr>>(program: S) -> Command {
 	command
 }
 
-pub(crate) trait SystemHTTPClient: Sized + Send + Sync {
+pub(crate) trait SystemHttpClient: Sized + Send + Sync {
 	const COMMAND: &'static str;
 
 	fn installed_spawn() -> Command {
@@ -47,12 +47,11 @@ macro_rules! system_http_clients {
 	{$($(#[$cfg:meta])? mod $mod:ident::$client:ident;)*} => {
 		$($(#[$cfg])? mod $mod;)*
 
-		#[allow(non_camel_case_types)]
 		#[derive(Clone, Copy, Debug)]
-		pub(super) enum ResolvedSystemHTTPClient {
-			$($(#[$cfg])? $client,)*
+		pub(super) enum ResolvedSystemHttpClient {
+			$($(#[$cfg])? #[allow(non_camel_case_types)] $client,)*
 		}
-		impl SystemHTTPClient for ResolvedSystemHTTPClient {
+		impl SystemHttpClient for ResolvedSystemHttpClient {
 			const COMMAND: &'static str = "";
 
 			fn installed() -> bool {
@@ -67,12 +66,12 @@ macro_rules! system_http_clients {
 		}
 
 		lazy_static::lazy_static! {
-			static ref HTTP_CLIENT: Option<ResolvedSystemHTTPClient> = {
+			static ref HTTP_CLIENT: Option<ResolvedSystemHttpClient> = {
 				#[allow(clippy::never_loop)]
 				loop {
 					$($(#[$cfg])? {
-						if <$mod::$client as SystemHTTPClient>::installed() {
-							break Some(ResolvedSystemHTTPClient::$client);
+						if <$mod::$client as SystemHttpClient>::installed() {
+							break Some(ResolvedSystemHttpClient::$client);
 						}
 					})*
 					break None;
@@ -90,11 +89,11 @@ macro_rules! system_http_clients {
 		}
 
 		#[cfg(test)]
-		pub(crate) fn all_http_clients() -> impl Iterator<Item = ResolvedSystemHTTPClient> {
+		pub(crate) fn all_http_clients() -> impl Iterator<Item = ResolvedSystemHttpClient> {
 			[
 				$($(#[$cfg])? {
 					if <$mod::$client>::installed() {
-						Some(ResolvedSystemHTTPClient::$client)
+						Some(ResolvedSystemHttpClient::$client)
 					} else {
 						None
 					}
@@ -119,7 +118,7 @@ system_http_clients! {
 	mod powershell::PowerShell;
 }
 
-pub(super) fn resolve() -> Result<ResolvedSystemHTTPClient, Error> {
+pub(super) fn resolve() -> Result<ResolvedSystemHttpClient, Error> {
 	match *HTTP_CLIENT {
 		Some(client) => Ok(client),
 		None => Err(Error::SystemHTTPClientNotFound),

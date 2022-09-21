@@ -2,7 +2,7 @@ use super::*;
 
 #[allow(non_camel_case_types)]
 pub struct cURL;
-impl SystemHTTPClient for cURL {
+impl SystemHttpClient for cURL {
 	const COMMAND: &'static str = "curl";
 
 	fn get(&self, uri: &str) -> Result<Vec<u8>, Error> {

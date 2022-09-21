@@ -2,7 +2,7 @@ use super::*;
 
 #[allow(non_camel_case_types)]
 pub struct wget;
-impl SystemHTTPClient for wget {
+impl SystemHttpClient for wget {
 	const COMMAND: &'static str = "wget";
 
 	fn get(&self, uri: &str) -> Result<Vec<u8>, Error> {

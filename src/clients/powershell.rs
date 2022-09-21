@@ -1,7 +1,7 @@
 use super::*;
 
 pub struct PowerShell;
-impl SystemHTTPClient for PowerShell {
+impl SystemHttpClient for PowerShell {
 	#[cfg(windows)]
 	const COMMAND: &'static str = "powershell";
 
