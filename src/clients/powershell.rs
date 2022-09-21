@@ -15,8 +15,14 @@ impl SystemHTTPClient for PowerShell {
 	}
 
 	fn get(&self, uri: &str) -> Result<Vec<u8>, Error> {
-		#[inline]
 		fn format_script(uri: &str) -> String {
+			let uri_escaped;
+			let uri = if uri.find('\'').is_some() {
+				uri_escaped = uri.replace('\'', "''");
+				&uri_escaped
+			} else {
+				uri
+			};
 			format!(r#"
 				$data = (Invoke-WebRequest '{uri}').Content;
 				$Writer = New-Object System.IO.BinaryWriter([console]::OpenStandardOutput());
@@ -26,13 +32,7 @@ impl SystemHTTPClient for PowerShell {
 			"#)
 		}
 
-		let uri = if uri.find('\'').is_some() {
-			format_script(&uri.replace('\'', "''"))
-		} else {
-			format_script(uri)
-		};
-
-		let mut output = spawn(Self::COMMAND).arg("-command").arg(&uri).output()?;
+		let mut output = spawn(Self::COMMAND).arg("-command").arg(format_script(uri)).output()?;
 
 		// Remove the trailing CRLF PowerShell adds...
 		if output.stdout.len() >= 2 && &output.stdout[output.stdout.len() - 2..] == b"\r\n" {
