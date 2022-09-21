@@ -1,4 +1,3 @@
-#![forbid(unsafe_code)]
 #![deny(missing_docs)]
 
 //! Simple, virtually-zero-dependencies HTTP client wrapping a system client.
@@ -26,20 +25,20 @@
 //! println!("{}", String::from_utf8_lossy(&html));
 //! ```
 
+#[cfg(test)]
 mod tests;
 
 mod error;
 pub use error::Error;
 
 mod clients;
-use clients::SystemHttpClient;
-pub use clients::{installed, supported_http_clients};
+use clients::{SystemHttpClient, resolve::resolve};
+pub use clients::{resolve::installed, supported_http_clients};
 
 mod url;
-use crate::url::ValidUrl;
+use self::url::ValidUrl;
 
 /// Perform a GET request to the given URL
 pub fn get(uri: impl ValidUrl) -> Result<Vec<u8>, Error> {
-	let uri = uri.validate()?;
-	clients::resolve()?.get(uri)
+	resolve()?.get(uri.validate()?)
 }

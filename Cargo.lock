@@ -606,7 +606,6 @@ name = "sysreq"
 version = "0.1.4"
 dependencies = [
  "difference",
- "lazy_static",
  "reqwest",
  "url",
 ]

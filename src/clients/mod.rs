@@ -1,6 +1,8 @@
 use std::process::Stdio;
 use crate::error::{Error, CommandFailedOutput};
 
+pub(crate) mod resolve;
+
 /// **Use `spawn` to create a new `std::process::Command`, not `Command::new`!**
 type Command = std::process::Command;
 
@@ -64,9 +66,8 @@ macro_rules! system_http_clients {
 				}
 			}
 		}
-
-		lazy_static::lazy_static! {
-			static ref HTTP_CLIENT: Option<ResolvedSystemHttpClient> = {
+		impl ResolvedSystemHttpClient {
+			fn resolve() -> Option<Self> {
 				#[allow(clippy::never_loop)]
 				loop {
 					$($(#[$cfg])? {
@@ -76,7 +77,7 @@ macro_rules! system_http_clients {
 					})*
 					break None;
 				}
-			};
+			}
 		}
 
 		/// Returns a list of supported system HTTP clients
@@ -116,17 +117,4 @@ system_http_clients! {
 	mod curl::cURL;
 	#[cfg(not(windows))]
 	mod powershell::PowerShell;
-}
-
-pub(super) fn resolve() -> Result<ResolvedSystemHttpClient, Error> {
-	match *HTTP_CLIENT {
-		Some(client) => Ok(client),
-		None => Err(Error::SystemHTTPClientNotFound),
-	}
-}
-
-#[inline]
-/// Returns whether the system has a compatible HTTP client installed
-pub fn installed() -> bool {
-	HTTP_CLIENT.is_some()
 }
