@@ -11,7 +11,6 @@ impl ContainsSlice for [u8] {
 			return false;
 		}
 		(0..=self.len() - subslice.len())
-			.into_iter()
 			.any(|start| &self[start..start + subslice.len()] == subslice)
 	}
 }
