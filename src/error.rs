@@ -32,6 +32,7 @@ pub enum Error {
 	IoError(std::io::Error),
 
 	/// The provided URL is invalid
+	#[cfg(feature = "validate")]
 	InvalidUrl(url::ParseError),
 
 	/// The URL must have a http or https scheme for security reasons
@@ -56,6 +57,7 @@ impl std::fmt::Display for Error {
 				write!(f, "This system does not have an HTTP client installed")
 			}
 			Error::IoError(e) => write!(f, "I/O error: {}", e),
+			#[cfg(feature = "validate")]
 			Error::InvalidUrl(e) => write!(f, "Invalid URL: {}", e),
 			Error::InvalidUrlScheme => write!(f, "URL must have http or https scheme"),
 			Error::CommandFailed { status, .. } => write!(f, "Process exited with code {status:?}"),
@@ -63,11 +65,14 @@ impl std::fmt::Display for Error {
 	}
 }
 impl std::error::Error for Error {}
+
+#[cfg(feature = "validate")]
 impl From<url::ParseError> for Error {
 	fn from(err: url::ParseError) -> Self {
 		Self::InvalidUrl(err)
 	}
 }
+
 impl From<std::io::Error> for Error {
 	fn from(err: std::io::Error) -> Self {
 		Self::IoError(err)
