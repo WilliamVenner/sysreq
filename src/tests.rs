@@ -9,18 +9,35 @@ const TIMEOUT: Option<Duration> = Some(Duration::from_secs(30));
 fn test_get() {
 	let reqwest = reqwest::blocking::Client::new();
 
-	for test_url in ["https://www.google.com/favicon.ico", "http://www.example.org"] {
+	for test_url in [
+		"https://www.google.com/favicon.ico",
+		"http://www.example.org",
+		"http://google.com/favicon.ico",
+	] {
 		for client in crate::clients::all_http_clients() {
+			println!("{test_url} sysreq...");
 			let result = client.get(test_url, TIMEOUT).unwrap();
 
-			let example = reqwest.get(test_url).send().unwrap().bytes().unwrap();
+			println!("{test_url} reqwest...");
+			let truth = reqwest.get(test_url).send().unwrap().bytes().unwrap();
 
-			if example != result.body {
-				let example = String::from_utf8_lossy(&example);
-				let result = String::from_utf8_lossy(&result.body);
+			println!("{test_url} checking...");
+
+			if truth != result.body {
+				let example_str = std::str::from_utf8(truth.as_ref());
+				let result_str = std::str::from_utf8(result.body.as_ref());
+				let diff = example_str
+					.and_then(|truth_str| result_str.map(|result_str| difference::Changeset::new(truth_str, result_str, "")))
+					.ok();
 				panic!(
-					"Client: {client:?}\nURL: {test_url}\n\nDiff:\n{}",
-					difference::Changeset::new(example.as_ref(), result.as_ref(), "")
+					"Client: {client:?}\nURL: {test_url}\n\nDiff:\nTruth: {} bytes vs Ours: {} bytes\n{}",
+					truth.len(),
+					result.body.len(),
+					if let Some(diff) = diff {
+						diff.to_string()
+					} else {
+						"<binary data>".to_string()
+					},
 				);
 			}
 		}

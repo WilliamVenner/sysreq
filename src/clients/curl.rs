@@ -9,7 +9,7 @@ impl SystemHttpClientInterface for cURL {
 		let output = spawn(Self::COMMAND)
 			.arg("-m")
 			.arg(timeout.unwrap_or(Duration::ZERO).as_secs_f64().to_string())
-			.arg("-g")
+			.arg("-L")
 			.arg(&url)
 			.output()?;
 
