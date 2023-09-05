@@ -7,6 +7,7 @@ impl SystemHttpClientInterface for cURL {
 
 	fn get(&self, url: &str, timeout: Option<Duration>) -> Result<Response, Error> {
 		let output = spawn(Self::COMMAND)
+			.arg("-g")
 			.arg("-m")
 			.arg(timeout.unwrap_or(Duration::ZERO).as_secs_f64().to_string())
 			.arg("-L")
