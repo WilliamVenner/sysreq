@@ -20,7 +20,7 @@ In your `Cargo.toml`:
 
 ```toml
 [dependencies]
-sysreq = "0"
+sysreq = "0.1"
 ```
 
 In your code:
