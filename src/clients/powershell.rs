@@ -43,14 +43,16 @@ impl SystemHttpClientInterface for PowerShell {
 				r#"
 				$ErrorActionPreference = "Stop"
 				[System.Net.ServicePointManager]::MaxServicePointIdleTime = {timeout_ms};
-				$data = (Invoke-WebRequest -TimeoutSec {timeout_sec} '{url}').Content;
+				$data = (Invoke-WebRequest -UseBasicParsing -TimeoutSec {timeout_sec} '{url}').Content;
 				$Writer = New-Object System.IO.BinaryWriter([console]::OpenStandardOutput());
 				$Writer.Write($data, 0, $data.length)
 				$Writer.Flush()
 				$Writer.Close()
 			"#,
 				url = url,
-				timeout_ms = timeout.map(|timeout| (timeout.as_secs_f64().max(0.001) * 1000.0).round() as u64).unwrap_or(0),
+				timeout_ms = timeout
+					.map(|timeout| (timeout.as_secs_f64().max(0.001) * 1000.0).round() as u64)
+					.unwrap_or(0),
 				timeout_sec = timeout.map(|timeout| timeout.as_secs_f64().max(1.0).round() as u64).unwrap_or(0)
 			)
 		}
