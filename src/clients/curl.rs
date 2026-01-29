@@ -11,7 +11,7 @@ impl SystemHttpClientInterface for cURL {
 			.arg("-m")
 			.arg(timeout.unwrap_or(Duration::ZERO).as_secs_f64().to_string())
 			.arg("-L")
-			.arg(&url)
+			.arg(url)
 			.output()?;
 
 		if output.status.success() {
